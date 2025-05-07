@@ -3,6 +3,7 @@ package auth
 import (
 	"demo/linker/configs"
 	"demo/linker/pkg/response"
+	"encoding/json"
 	"fmt"
 	"net/http"
 )
@@ -26,6 +27,12 @@ func NewAuthHandler(router *http.ServeMux, deps AuthHandlerDeps) {
 func (handler *AuthHandler) Login() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		fmt.Println("Login")
+		var loginRequest LoginRequest
+		err := json.NewDecoder(req.Body).Decode(&loginRequest)
+		if err != nil {
+			response.Json(w, err.Error(), 402)
+		}
+		fmt.Println(loginRequest)
 		data := AuthResponse{
 			Token: "123",
 		}
