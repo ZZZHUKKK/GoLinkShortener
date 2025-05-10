@@ -2,8 +2,8 @@ package auth
 
 import (
 	"demo/linker/configs"
+	"demo/linker/pkg/request"
 	"demo/linker/pkg/response"
-	"encoding/json"
 	"fmt"
 	"net/http"
 )
@@ -27,10 +27,9 @@ func NewAuthHandler(router *http.ServeMux, deps AuthHandlerDeps) {
 func (handler *AuthHandler) Login() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		fmt.Println("Login")
-		var loginRequest LoginRequest
-		err := json.NewDecoder(req.Body).Decode(&loginRequest)
+		loginRequest, err := request.HandleBody[LoginRequest](&w, req)
 		if err != nil {
-			response.Json(w, err.Error(), 402)
+			return
 		}
 		fmt.Println(loginRequest)
 		data := AuthResponse{
@@ -43,6 +42,15 @@ func (handler *AuthHandler) Login() http.HandlerFunc {
 func (handler *AuthHandler) Register() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		fmt.Println("Register")
+		regRequest, err := request.HandleBody[RegisterRequest](&w, req)
+		if err != nil {
+			return
+		}
+		fmt.Println(regRequest)
+		data := AuthResponse{
+			Token: "123",
+		}
+		response.Json(w, data, 200)
 	}
 
 }
