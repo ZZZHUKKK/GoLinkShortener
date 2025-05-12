@@ -15,10 +15,16 @@ type LinkModel struct {
 var letterRunes = []rune("qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM123456789")
 
 func NewLink(url string) *LinkModel {
-	return &LinkModel{
-		Url:  url,
-		Hash: RandString(6),
+	link := &LinkModel{
+		Url: url,
 	}
+	link.GenerateHash()
+	return link
+
+}
+
+func (link *LinkModel) GenerateHash() {
+	link.Hash = RandString(6)
 }
 
 func RandString(n int) string {
