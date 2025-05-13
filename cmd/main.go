@@ -5,6 +5,7 @@ import (
 	"demo/linker/internal/auth"
 	"demo/linker/internal/link"
 	"demo/linker/pkg/db"
+	"demo/linker/pkg/middleware"
 	"fmt"
 	"net/http"
 )
@@ -26,9 +27,15 @@ func main() {
 		LinkRepository: linkrep,
 	})
 
+	//Middlewares
+	stack := middleware.Chain(
+		middleware.CORS,
+		middleware.Logging,
+	)
+
 	server := http.Server{
 		Addr:    ":8081",
-		Handler: router,
+		Handler: stack(router),
 	}
 
 	fmt.Println("Server is listening on port 8081")
