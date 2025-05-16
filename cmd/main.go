@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"demo/linker/configs"
 	"demo/linker/internal/auth"
 	"demo/linker/internal/link"
@@ -9,9 +10,29 @@ import (
 	"demo/linker/pkg/middleware"
 	"fmt"
 	"net/http"
+	"time"
 )
 
 func main() {
+	ctx := context.Background()
+	ctxWithTimeOut, cencel := context.WithTimeout(ctx, 4*time.Second)
+	defer cencel()
+
+	done := make(chan struct{})
+	go func() {
+		time.Sleep(3 * time.Second)
+		close(done)
+	}()
+
+	select {
+	case <-done:
+		fmt.Println("Done task")
+	case <-ctxWithTimeOut.Done():
+		fmt.Println("Timeout")
+	}
+}
+
+func main2() {
 	conf := configs.LoadConfig()
 	database := db.NewDb(conf)
 	router := http.NewServeMux()

@@ -2,6 +2,7 @@ package auth
 
 import (
 	"demo/linker/configs"
+	"demo/linker/pkg/jwt"
 	"demo/linker/pkg/request"
 	"demo/linker/pkg/response"
 	"fmt"
@@ -34,9 +35,18 @@ func (handler *AuthHandler) Login() http.HandlerFunc {
 		if err != nil {
 			return
 		}
-		fmt.Println(loginRequest)
+		email, err := handler.AuthService.Login(loginRequest.Email, loginRequest.Password)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusUnauthorized)
+			return
+		}
+		token, err := jwt.NewJWT(handler.Auth.Secret).Create(email)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 		data := AuthResponse{
-			Token: "123",
+			Token: token,
 		}
 		response.Json(w, data, 200)
 	}
@@ -50,12 +60,19 @@ func (handler *AuthHandler) Register() http.HandlerFunc {
 			response.Json(w, map[string]string{"error": err.Error()}, http.StatusBadRequest)
 			return
 		}
-		fmt.Println(regRequest)
-		_, err = handler.AuthService.Register(regRequest.Email, regRequest.Password, regRequest.Name)
+		email, err := handler.AuthService.Register(regRequest.Email, regRequest.Password, regRequest.Name)
 		if err != nil {
-			response.Json(w, map[string]string{"error": err.Error()}, http.StatusBadRequest)
+			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
-		response.Json(w, map[string]string{"message": "User registered successfully"}, http.StatusCreated)
+		token, err := jwt.NewJWT(handler.Auth.Secret).Create(email)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		data := AuthResponse{
+			Token: token,
+		}
+		response.Json(w, data, 200)
 	}
 }
